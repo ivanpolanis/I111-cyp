@@ -1,0 +1,53 @@
+bool correcto[40] = { [40] false };
+sem espera[40] = { [40] 0 }; sem mutex = 1; sem correcciones = 0;
+tarea tareas[40]; queue entregados;
+
+process Alumno [i:0..39]
+{
+  tarea trabajo;
+  p(espera[i]);
+  trabajo = tareas[i];
+  -- Hace la tarea
+
+  p(mutex);
+  push(entregados, (trabajo, i));
+  v(mutex);
+  v(correcciones);
+
+  p(espera[i]);
+  while(not correcto[i]) {
+    trabajo = tareas[i];
+    -- Hace la tarea
+    p(mutex);
+    push(entregados, (trabajo, i));
+    v(mutex);
+    v(correciones);
+    p(espera[i]);
+  }
+}
+
+process Profesora
+{
+  int terminados = 0;
+
+  for i in 0..39 {
+      tarea[i] = tarea_random();
+      v(espera[i]);
+  }
+
+  while (terminados < 40) {
+    p(correcciones);
+    p(mutex);
+    {examen, id} = pop(entregados);
+    v(mutex)
+    -- Corrige
+    if (aprobado(examen)) {
+        correcto[id] = true;
+        terminados = terminados + 1;
+    } else {
+        tareas[id] = examen;
+    }
+    v(espera[id]);
+  }
+
+}

@@ -1,0 +1,30 @@
+queue entregados; hashtable notas;
+
+process profesor::[id=0..2]
+{
+  examen corrigiendo;
+  <await Total == P>
+
+
+  while (Total > 0) {
+      <await not empty(entregados) or Total == 0;
+      if(Total == 0) break;
+      else corrigiendo = pop(entregados); Total = Total - 1>
+
+      int nota = corregir(corrigiendo);
+      <add(notas, nota, corrigiendo.id)>
+
+      }
+  }
+}
+
+process alumno::[id=0..P-1]
+{
+  examen examen = ...;
+  <Total = Total + 1;>
+  <await Total == P>
+  //Resuelve el examen
+  <push(entregados, examen)>
+  <await in(notas, id)>
+  int nota = get(notas, id);
+}

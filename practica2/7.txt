@@ -1,0 +1,26 @@
+sem mutexGrupo = 1; sem grupo[5] = { [5] 1 };
+int empleadoActual = 0; int prod[5] = { [5] 0 };
+
+process Empleado [id: 0..14]
+{
+  int nroGrupo;
+
+  p(mutexGrupo);
+  nroGrupo = empleadoActual div 3;
+  empleadoActual++;
+  v(mutexGrupo);
+
+  p(grupo[nroGrupo]);
+
+  while (prod[nroGrupo] < P) {
+    prod[nroGrupo]++;
+    v(grupo[nroGrupo]);
+    -- Hace el producto
+    p(grupo[nroGrupo]);
+  }
+
+  v(grupo[nroGrupo]);
+
+}
+
+

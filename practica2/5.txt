@@ -1,0 +1,61 @@
+sem mutex = 1;
+sem espera[40] = { [40] 0 }
+sem barrera = 0; int contador = 0;
+queue fila; boolean libre = true; sem maquina = 1; int botellas = 20; int actual = -1;
+sem mutexRepo = 0;
+
+process corredor [id: 0..C-1]
+{
+  p(mutex);
+  contador = contador + 1;
+  if(contador ==  C) {
+    for i in 0..39 {
+        v(barrera);
+    }
+    v(mutex);
+  } else {
+    v(mutex);
+    p(barrera);
+  }
+
+  p(maquina);
+  if (libre) {
+      libre = false
+      v(maquina);
+  } else {
+      push(fila, id);
+      v(maquina);
+      p(espera[id]);
+  }
+
+  if (botellas == 0) {
+      actual = id;
+      v(mutexRepo);
+      p(espera[id]);
+   }
+   botellas = botellas - 1;
+   contador = contador - 1,
+
+   if (contador == 0) {
+       v(mutexRepo);
+   }
+
+   p(maquina);
+   if (empty(fila)) {
+       libre = true;
+   } else {
+    int siguiente = pop(fila);
+    v(espera[siguiente]);
+   }
+   v(maquina);
+}
+
+process repositor
+{
+  p(mutexRepo);
+  while (contador > 0) {
+    botellas = 20;
+    v(espera[actual]);
+    p(mutexRepo);
+  }
+}

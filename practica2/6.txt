@@ -1,0 +1,61 @@
+sem mutexCombi[4] = { [4] 0 }; sem mutexSubidos[4] = { [4] 0 }; sem mutexLlegada[4] = { [4] 0 };
+sem mutexCliente = 0; sem fila = 1; sem clientes[C] = { [C] 0 }; sem mutexOk = 1;
+cola fila;
+
+process Combi [id: 0..3]
+{
+  for i in 0..24 {
+      p(mutexSubidos[id]);
+  }
+  -- Realiza el viaje;
+  for i in 0..24 {
+      v(mutexLlegada[id])
+  }
+
+}
+
+process Cliente [id: 0..C-1]
+{
+  int nro;
+  p(mutexFila);
+  push(fila,nro,id);
+  v(mutexFila);
+  v(mutexCliente);
+
+  p(clientes[id]);
+  p(mutexOk);
+  if(ok) {
+    v(mutexOk);
+    v(mutexSubidos[nro]);
+    p(mutexLlegada[nro]);
+  } else {
+    v(mutexOk);
+  }
+
+}
+
+process Vendedor
+{
+  int total = 0;
+  int combis[4] = { [4] 0 };
+  int idActual;
+  p(mutexCliente);
+  while (total < 100) {
+    p(mutexFila);
+    int micro = pop(fila, idActual);
+    v(mutexFila);
+
+    p(mutexOk);
+    ok = false;
+
+    if (combis[micro] < 25) {
+      ok = true;
+      combis[micro]++;
+      total++;
+    }
+    v(mutexOk);
+
+    v(clientes[id]);
+    p(mutexCliente);
+  }
+}

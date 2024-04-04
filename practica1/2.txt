@@ -1,0 +1,5 @@
+int total = 0; int[] arr=[...]; int N;
+process counter::[i=0..M-1]
+{
+  if (arr[i] == N) <total = total + 1;>
+}

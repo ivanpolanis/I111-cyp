@@ -1,0 +1,87 @@
+a)
+bool libre = true; imp impresora;
+process persona::[id=0..N-1]
+{
+  Doc documento = ...;
+  <await libre; libre = false;>
+  imprimir(documento);
+  libre = true;
+}
+
+:::::::::::::::::::::::::::::::::::
+
+b)
+imp impresora; cola cola; int siguiente = -1;
+
+process persona::[id=0..N-1]
+{
+  Doc documento = ...;
+  <if (siguiente == -1) siguiente = id;
+  else push(cola, id)>
+  <await siguiente == id>
+
+  imprimir(documento);
+
+  <if empty(cola) siguiente = -1;
+  else siguiente = pop(cola)>
+}
+
+:::::::::::::::::::::::::::::::::::
+
+c)
+imp impresora; cola cola; int siguiente = -1;
+
+process persona::[id=0..N-1]
+{
+  Doc documento = ...;
+  <if (siguiente == -1) siguiente = id;
+  else encolar(cola, id, edad)>
+  <await siguiente == id>
+
+  imprimir(documento);
+
+  <if empty(cola) siguiente = -1;
+  else siguiente = pop(cola)>
+}
+
+:::::::::::::::::::::::::::::::::::
+
+d)
+imp impresora; int siguiente = 0;
+
+process persona::[id=0..N-1]
+{
+  Doc documento = ...;
+  <await siguiente == id>
+
+  imprimir(documento);
+
+  siguiente = id + 1;
+}
+
+:::::::::::::::::::::::::::::::::::
+
+e)
+imp impresora; cola cola; int siguiente = -1; bool ok = False;
+
+process coordinador::
+{
+  while (True){
+
+    <await not empty(cola)>
+    siguiente = pop(cola);
+    <await ok>; ok = False;
+
+  }
+}
+
+process persona::[id=0..N-1]
+{
+  Doc documento = ...; int edad = ...;
+  <encolar(cola, id, edad)>
+  <await siguiente == id>
+
+  imprimir(documento);
+
+  ok = True;
+}

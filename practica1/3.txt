@@ -1,0 +1,8 @@
+cola cola;
+process getter::
+{
+  cola actual;
+  <await not empty(cola); actual = pop(cola)>;
+  // Se hace lo que haya que hacer.
+  <push(cola, actual)>
+}
