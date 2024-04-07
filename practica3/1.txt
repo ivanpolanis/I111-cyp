@@ -1,21 +1,21 @@
 process Usuario [id: 0..N-1]
 {
   text consulta, res;
-  Gestor.Query(consulta, id, res);
+  BaseDeDatos.Query(consulta, id, res);
 }
 
-process BaseDeDatos [id: 0..4]
+process Gestor [id: 0..4]
 {
   int idAux;
   while (true)
   {
-    Gestor.LeerConsulta(consulta, idAux);
+    BasesDeDatos.LeerConsulta(consulta, idAux);
     res = ProcesarConsulta(consulta);
-    Gestor.EnviarRespuesta(res, idAux);
+    BasesDeDatos.EnviarRespuesta(res, idAux);
   }
 }
 
-Monitor Gestor {
+Monitor BaseDeDatos {
   cond bases, users[N];
   cola C; text resultados[N];
 
