@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   init_matrix(a, n);
   init_matrix(b, n);
 
-#pragma omp parallel for shared(a, b, res, n) schedule(dynamic)
+#pragma omp parallel for shared(res) schedule(dynamic)
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
       for (int k = 0; k < n; k++) {
@@ -49,6 +49,4 @@ int main(int argc, char **argv) {
       }
     }
   }
-
-  printf("Termine");
 }
