@@ -1,0 +1,141 @@
+a)
+
+process Persona [id: 0..N-1]{
+    text texto = ...;
+    Fotocopiadora.usar(texto)
+}
+
+Monitor Fotocopiadora {
+    procedure usar(texto: in text){
+        Fotocopiar(text);
+    }
+}
+
+-----------------------------------------------
+
+b)
+
+process Persona [id: 0..N-1] {
+    text texto = ...;
+
+    Fotocopiadora.usar();
+    Fotocopiar(texto);
+    Fotocopiadora.liberar();
+}
+
+Monitor Fotocopiadora {
+    bool libre = true;
+    int esperando;
+    cond c;
+
+    procedure usar(){
+        if (!libre) {esperando++; wait(c)}
+        else libre = false;
+      }
+    procedure liberar() {
+        if (esperando > 0) {
+            esperando--;
+            signal(c);
+        } else libre = true;
+      }
+}
+
+------------------------------------------------
+
+c)
+
+process Persona [id: 0..N-1] {
+    text texto = ...;
+    int edad = ...;
+
+    Fotocopiadora.usar(id, edad);
+    Fotocopiar(texto);
+    Fotocopiadora.liberar();
+}
+
+Monitor Fotocopiadora {
+    bool libre = true;
+    cond c[N]; colaOrdenada espera;
+
+    procedure usar(id:in int, edad: in int){
+        if (!libre) {push(espera,(id,edad)); wait(c[id])}
+        else libre = false;
+      }
+
+    procedure liberar() {
+        int idAux;
+        if (!empty(espera)) {
+            pop(colaOrdenada, idAux)
+            signal(c[idAux]);
+        } else libre = true;
+      }
+}
+
+------------------------------------------------
+
+d)
+
+process Persona [id: 0..N-1] {
+    text texto = ...;
+    int edad = ...;
+
+    Fotocopiadora.usar(id, edad);
+    Fotocopiar(texto);
+    Fotocopiadora.liberar();
+}
+
+Monitor Fotocopiadora {
+    bool libre = true; int siguiente = 0;
+    cond c[N]; int esperando = 0;
+
+    procedure usar(id:in int, edad: in int){
+        if (!libre || siguiente!=id) {esperando++; wait(c[id])}
+        else libre = false;
+      }
+
+    procedure liberar() {
+        siguiente++;
+        if (esperando > 0) {
+            signal(c[siguiente]);
+        } else libre = true;
+      }
+}
+
+-----------------------------------------------
+
+e)
+
+process Persona [id: 0..N-1] {
+    text texto = ...;
+
+    Fotocopiadora.usar();
+    Fotocopiar(texto);
+    Fotocopiadora.liberar();
+}
+
+???????????????????????????????????????????''
+Empleado {
+
+    procedure solicitar(){
+        if (!libre) {wait}
+    }
+
+}
+
+Monitor Fotocopiadora {
+    bool libre = true;
+    int esperando;
+    cond c;
+
+    procedure usar(){
+        if (!libre) {esperando++; wait(c)}
+        else libre = false;
+      }
+
+    procedure liberar() {
+        if (esperando > 0) {
+            esperando--;
+            signal(c);
+        } else libre = true;
+      }
+}
