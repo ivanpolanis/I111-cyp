@@ -1,0 +1,27 @@
+procedure Persona [id: 0..19] {
+  int nro_equipo = ...;
+  int acum = 0; int total = 0;
+  Juego.Llegada(nro_equipo);
+  for i=0..14 { acum += Moneda() }
+  Juego.Llegada(nro_equipo, acum, total);
+}
+
+Monitor Juego {
+  int total[5] = { [5] 0 }, acumulado[5] = 0;
+  cond equipo[5];
+
+  procedure Llegada(nro_equipo: in int) {
+      total[nro_equipo]++;
+      if (total[nro_equipo] < 5) { wait(equipo[nro_equipo]); }
+      else { total[nro_equipo] = 0; }
+      signal_all(equipo[nro_equipo]);
+  }
+
+  procedure Terminar(nro_equipo: in int, juntado: in int, t_equipo: out int) {
+    acumulado[nro_equipo] += juntado;
+    total[nro_equipo]++;
+    if(total[nro_equipo] < 5) { wait(equipo[nro_equipo]); }
+    else { signal_all(equipo[nro_equipo]; }
+    t_equipo = acumulado[nro_equipo]
+  }
+}

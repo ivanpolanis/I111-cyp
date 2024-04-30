@@ -1,0 +1,49 @@
+-- Se supone que el JTP no puede entregar más de dos veces el mismo número.
+
+Procedure Alumno [id:0..49]{
+  int grupo; int nota;
+  Gestor.EsperarGrupo(grupo, id);
+  -- Labura
+  Gestor.Terminado(nota, grupo, id);
+}
+
+Procedure JTP {
+  Gestor.EntregarNumeros();
+  for i=1..25 { Gestor.EntregarNota() }
+
+}
+
+Monitor Gestor {
+  int alumnos = 0, nota = 25, nota_grupos[25], grupos[N], terminados[25]={[25] 0};
+  cond a, t[25], p; cola cTerminados;
+
+  procedure EsperarGrupo(grupo: out int, id: in int){
+    alumnos++;
+    if (alumnos == 50) signal(p);
+    wait(a);
+    grupo = grupos[id];
+  }
+
+  procedure Terminado(nota: out int, grupo: in int, id: in int) {
+    terminados[grupo]++;
+    if (terminados[grupo] == 2) { push(cTerminados, grupo); signal(p); }
+    wait(t[grupo]);
+    nota = nota_grupos[grupo];
+  }
+
+  procedure EntregarNumero() {
+      if (alumnos < 50) wait(p);
+      for i=0..49 { grupos[i] = DarNumero(); }
+      signal_all(a);
+  }
+
+  procedure EntregarNota() {
+    if (empty(cTerminados)) { wait(p); }
+    int grupo;
+    pop(cTerminados, grupo);
+    nota_grupos[grupo] = nota;
+    nota--;
+    signal_all(t[grupo]);
+  }
+
+}

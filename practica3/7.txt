@@ -1,0 +1,44 @@
+process Corredor [id:0..C-1] {
+  Carrera.Comenzar()
+  --
+  Carrera.SacarBotella()
+}
+
+process Repartidor {
+  while (true)
+  {
+    Carrera.Llenar()
+    Reponer();
+    Carrera.Avisar();
+  }
+}
+
+Monitor Carerra{
+  int botellas = 20; bool libre = true;
+  cond r, c[C], espera, act; int corredores = 0;
+
+  procedure Comenzar() {
+      total++;
+      if (total < C) { wait(espera); }
+      else { signal_all(espera); }
+    }
+
+  procedure SacarBotella(id: in int){
+    if (!libre) { corredores++; wait(c); }
+    else { libre = false; }
+    if (botellas == 0) { signal(r); wait(act); }
+    botellas--;
+
+    if (corredores > 0) { corredores--; signal(c); }
+    else { libre = true; }
+  }
+
+  procedure Llenar(){
+    if(botellas > 0) { wait(r); }
+  }
+
+  procedure Avisar(){
+    botellas = 20;
+    signal(act);
+  }
+}

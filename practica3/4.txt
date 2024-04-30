@@ -1,0 +1,80 @@
+ Process Profesor[id:0..2]
+{
+    int id_act;
+    bool quedan;
+    Examen examen_act;
+    Evaluados.HayAlumnos(quedan);
+    while(quedan){
+        Administracion.LlamarAlumno(id_act, examen);
+        Escritorio[id].EsperarResolucion(examen_act);
+        real nota = --Evaluar nota a partir del examen_act;
+        Escritorio[id].EntregarNota(id_act, nota);
+        Evaluados.HayAlumnos(quedan);
+    }
+}
+
+
+Process Alumno[id:0..29]
+{
+    real mi_nota;
+    int id_profesor;
+    Administracion.LlegadaAlumno(id_profesor);
+    Escritorio[id_profesor].HacerExamen(mi_nota);
+}
+
+
+Monitor Administracion {
+    Cond cvAlumnos;
+    cola profesores;
+    int cantLibres = 0, esperando = 0;
+
+    Procedure LlegadaAlumno(id_profesor: out int){
+        if(cantLibres == 0) {esperando++; wait(cvAlumnos);}
+        else {cantLibres--;}
+        pop(profesores, id_profesor);
+    }
+
+    Procedure LlamarAlumno(id_profesor: in int){
+        push(profesores, id_profesor);
+        if(esperando > 0) {esperando--; signal(cvAlumnos);}
+        else {cantLibres++;}
+    }
+}
+
+
+Monitor Escritorio[id: 0..2] {
+    Cond cvAlumno, cvProfesor;
+    Examen examen;
+    real nota;
+    bool examen_terminado = false;
+
+    Procedure HacerExamen(mi_nota: out real) {
+        --Hacer examen
+        examen_terminado = true;
+        signal(cvProfesor);
+        wait(cvAlumno);
+        mi_nota = nota;
+        signal(cvProfesor);
+    }
+
+    Procedure EsperarResolucion(E: out Examen) {
+        if(not examen_terminado){wait(cvProfesor;)}
+        E = examen;
+    }
+
+    Procedure EntregarNota(N: in real) {
+        nota = N;
+        signal(cvAlumno);
+        wait(cvProfesor);
+        examen_terminado = false;
+    }
+}
+
+
+Monitor Evaluados {
+    alumnos_evaluados = 0;
+
+    Procedure HayAlumnos(quedan: out bool){
+        quedan = (alumnos_atendidos++ <= N);
+    }
+}

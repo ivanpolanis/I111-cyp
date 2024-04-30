@@ -1,0 +1,39 @@
+-- Supongo que el empleado va dejando los comprobantes y no tiene que esperar que los clientes lo tomen para seguir atendiendo.
+
+process Cliente [id: 0..N-1] {
+  str lista = ...;
+  str comp;
+
+  Gestor.EntregarLista(id,lista, comp);
+
+}
+
+process Empleado {
+  int id_aux; str lista;
+  while (true) {
+      Gestor.Sig(id_aux,lista);
+      str comprobante = GenerarComprobante(lista);
+      Gestor.Entregar(id_aux,comprobante);
+    }
+}
+
+Monitor Gestor {
+  cola c; cond cliente, emp; str comprobantes[N];
+
+  procedure EntregarLista(id: in int, lista: in str, comprobante: out str) {
+      push(c,(id,lista));
+      signal(emp);
+      wait(cliente);
+      comprobante = comprobantes[id];
+    }
+
+  procedure Sig(id: out int, lista: out str) {
+      if(empty(c)) {wait(emp)}
+      pop(c,(id,lista));
+    }
+
+  procedure Entregar(id: in int, comprobante: in str) {
+    comprobantes[id] = comprobante;
+    signal(cliente);
+  }
+}
