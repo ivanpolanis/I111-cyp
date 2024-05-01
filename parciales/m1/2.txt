@@ -1,0 +1,60 @@
+-- Resolver con SENTENCIAS AWAIT ( <> y <await B ; S>) el problema. Se debe calcular el menor valor de un vector de N números enteros por medio de 10 procesos. Suponga que N es múltiplo de 10. Nota: maximizar la concurrencia.
+
+int V[N];
+float prom = 0;
+
+process Calculador [id:0..9]
+{
+  int pos = id;
+  int sum = 0;
+
+  for i=0..N/10 -> { sum+=V[N]; pos += 10; }
+
+  float local_prom = (sum * 10) / N
+
+  <prom += local_prom>
+}
+
+-- Resolver con SEMAFOROS el siguiente problema. Hay una carrera donde compiten 15 Autos; cuando todos han llegado se larga la carrera. Al terminar cada auto debe saber en qué posición terminó. Nota: maximizar la concurrencia.
+
+sem barrera = 0, mutex = 1;
+int llegaron = 0; int posicion = 1;
+
+process Auto [id:0..14]
+{
+  p(mutex)
+  llegaron++;
+  if (llegaron == 15) { for i=0..14 -> v(barrera); }
+  v(mutex);
+  p(barrera);
+
+  -- Corre la carrera;
+
+  p(mutex);
+  int mi_posicion = posicion;
+  posicion++;
+  v(mutex);
+}
+
+-- Resolver con MONITORES el siguiente problema. Hay un teléfono público que debe ser utilizado por N personas de acuerdo al orden de llegada (de a una persona a la vez). Nota: maximizar la concurrencia.
+
+process Persona [id:0..N-1]
+{
+  Gestor.Llegar();
+  Llamar();
+  Gestor.Liberar();
+}
+
+Monitor Gestor
+{
+  cond cvPersonas; int esperando = 0; bool libre = true;
+  procedure Llegar() {
+      if(libre) { libre = false; }
+      else { esperando++; wait(cvPersonas); }
+  }
+
+  procedure Liberar() {
+    if (esperando > 0) { esperando--; signal(cvPersonas); }
+    else { libre = true; }
+  }
+}

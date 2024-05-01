@@ -1,0 +1,232 @@
+-- Resolver con SENTENCIAS AWAIT (<> y/o <await B; S>) el siguiente problema. Se debe realizar el producto escalar de dos vectores A y B de 1000 números (como se muestra en la fórmula \sum_{i=0}^{999} A[i] X B[i]), utilizando 10 procesos. Al terminar todos los procesos deben guardarse en una variable local el resultado final r. Nota: maximizar concurrencia.
+
+int prod = 0; int terminaro = 0;
+int A[1000], B[1000];
+
+process Calculador [id: 0..9]
+{
+  int pos = id;
+  int sum = 0;
+  for i=1..100 -> {
+    sum += A[pos] * B[pos];
+    pos += 10;
+  }
+
+  <prod += sum>
+  <terminaron++>
+  <await terminaron == 10>
+  int r = prod;
+}
+
+-- Resolver con SENTENCIAS AWAIT (<> y/o <await B; S>) el siguiente problema. Se debe calcular el valor promedio de un vector de 1000 números por medio de 10 procesos. Al finalizar todos los procesos deben guardar en una variable local el resultado final. Nota: maximizar la concurrencia.
+
+float prom = 0; int terminados = 0;
+int v[1000];
+
+process Calculador [id:0..9] {
+  int pos = id;
+  int sum = 0;
+
+  for i=0..100 -> {
+    sum = sum + v[pos];
+    pos = pos + 10;
+  }
+
+  <prom = prom + sum/100>
+  <terminados = terminados + 1>
+  <await terminados == 10>
+  float r = prom;
+}
+
+
+-- Resolver con SENTENCIAS AWAIT (<> y/o <await B; S>) el siguiente problema. En una playa hay 5 personas que deben juntar 15 monedas cada una y obtener el TOTAL de dinero juntado entre todos (la suma del valor de las 75 monedas que pueden ser de 1, 2 o 5 pesos). Al terminar todos los procesos deben guardarse en una variable local el TOTAL. Nota: maximizar la concurrencia. Suponga que existe una función Moneda() llamada por las personas que simula encontrar UNA moneda y retorna el valor de la misma. Cada persona trabaja sobre una zona diferente de la playa.
+
+
+int total_g = 0;
+int terminaron = 0;
+
+process Persona [id:0..4]
+{
+  int acum = 0;
+
+  for i=1..15 -> { acum += Moneda(); }
+
+  <total_g += acum>
+  <terminaron++>
+  <await terminaron == 5>
+  int TOTAL = total_g;
+}
+
+
+
+-- Resolver el siguiente problema con SEMÁFOROS. Simular la atención en una Salita Médica para vacunar contra el coronavirus. Hay UNA enfermera encargada de vacunar a 30 pacientes, cada paciente tiene un turno asignado (valor entero entre 1..30 ya conocido por el paciente). La enfermera atiende a los pacientes en un consultorio (donde no puede haber más de un paciente a la vez) de acuerdo al turno que cada uno tiene asignado. Cada paciente al llegar espera a que sea su turno y luego se dirige al consultorio, le entrega la libreta de vacunación a la enfermera, espera que esta lo vacune y le devuelva la libreta firmada, y luego se retira. Nota: suponer que existe una función Vacunar() que simula la atención del paciente por parte de la enfermera. Todos los procesos deben terminar.
+
+sem mutex = 1, pacientes[30] = ( [30] 0 ), enfermera = 0;
+
+process Paciente [id:1..30]
+{
+  p(paciente[id]);
+  v(enfermera);
+
+  -- Entrega la libreta y espera que lo vacunen
+
+  p(paciente[id]);
+  v(enfermera)
+}
+
+process Enfermera
+{
+  for i=1..30 -> {
+    v(paciente[i]);
+    p(enfermera);
+
+    Vacunar();
+
+    v(paciente[i]);
+    p(enfermera);
+  }
+}
+
+-- Resolver el siguiente problema con SEMÁFOROS. Simular la atención en una Terminal de Micros que posee 3 puestos para hisopar a 150 pasajeros. En cada puesto hay una Enfermera que atiende a los pasajeros de acuerdo al orden de llegada al mismo. Cuando llega un pasajero se dirige al puesto que tenga menos gente esperando. Espera a que la enfermera correspondiente lo llame para hisoparlo, y luego se retira. Nota: suponer que existe una función Hisopar() que simula la atención del pasajero por parte de la enfermera correspondiente.
+
+
+-- Alta paja
+process Persona [id:0..149]
+{
+
+}
+
+process Enfermera [id:0..2]
+{
+
+}
+
+-- Resolver el siguiente problema con SEMÁFOROS. Simular la atención en un Centro de Vacunación con 8 puestos para vacunar contra el coronavirus. Al Centro acuden 200 pacientes para ser vacunados, cada uno de ellos ya conoce el puesto al que se debe dirigir. En cada puesto hay UN empleado para vacunar a los pacientes asignados a dicho puesto, y lo hace de acuerdo al orden de llegada al mismo. Cada paciente al llegar al puesto que tenía asignado espera a que lo llamen para vacunarlo, y al terminar se retira. Nota: suponer que existe una función Vacunar() que simula la atención del paciente por parte del empleado. Suponer que cada puesto tiene asignado 25 pacientes. Todos los procesos deben terminar.
+
+cola c_puesto[8];
+sem mutex_c[8] = ( [8] 1 );
+sem pac[200] = ( [200] 0 ), e[8] = ( [8] 0 ), listo[8] = ( [8] 0 );
+
+process Paciente[id:0..199]
+{
+  int nro_p = ...;
+
+  p(mutex_c[nro_p]);
+  push(c_puesto[nro_p], id);
+  v(mutex_c[nro_p]);
+
+  v(e[nro_p]); --Avisa que llego
+  p(pac[id]);
+  v(listo[nro_p]); -- Avisa que se fue
+}
+
+process Empleado[id:0..7]
+{
+  int aux;
+  for i=1..25 -> {
+    p(e[id]);
+    p(mutex_c[id]);
+    pop(c_puesto[id],aux);
+    v(mutex_c[id]);
+
+    Vacunar()
+
+    v(pac[aux]);
+    p(listo[id]);
+  }
+}
+
+
+-- Resolver el siguiente problema con MONITORES. Simular el funcionamiento de un Complejo de
+Canchas de Paddle que posee 10 canchas y donde hay UN robot encargado de distribuir a las personas en las canchas. Al complejo acuden 40 personas a jugar. Cuando una persona llega el robot le indique el número de cancha a la cual debe ir, para que se dirija a ella; cuando han llegado los 4 jugadores a la cancha, comienzan a jugar el partido que dura 60 minutos; al terminar el partido las 4 personas se retiran. El encargado asigna el número de cancha según el orden de llegada (los 4 primeros a la cancha 1, los siguientes 4 a la 2 y así sucesivamente). Nota: maximizar la concurrencia.
+
+process Jugador[id:0..39]
+{
+  int nro_cancha;
+  Robot.Llegada(nro_cancha);
+  Cancha[nro_cancha].Jugar();
+}
+
+process Partido[id:0..7]
+{
+  Cancha[id].Iniciar();
+  Delay(60);
+  Cancha[id].Terminar();
+}
+
+Monitor Cancha[id:0..7]{
+  int llegaron = 0; cond cvJugador, inicio;
+  procedure Llegada() {
+    llegaron++;
+    if (llegaron == 4) { signal(inicio); }
+    wait(cvJugador)
+  }
+
+  procedure Iniciar() {
+      if (llegaron < 4) { wait(inicio); }
+  }
+
+  procedure Terminar() {
+    signal_all(cvJugador);
+  }
+}
+
+Monitor Robot
+{
+  int cancha_actual = 0; int jugadores = 0;
+  procedure Llegada(nro: out int) {
+    jugadores++;
+    nro = cancha_actual;
+    if (jugadores % 4 == 0) { cancha_actual++; }
+  }
+}
+
+-- Resolver el siguiente problema con MONITORES. Simular el funcionamiento de un Complejo de Canchas de Futbol 5 que posee 8 canchas y donde hay una máquina encargada de asignar las canchas. Al complejo acuden 80 jugadores divididos en 8 grupos (cada grupo tiene las 10 personas que jugarán en una cancha), cada jugador ya conoce a qué grupo pertenece. Cuando un jugador llega le indica a la máquina el grupo al que pertenece para que esta le indique el número de cancha a la cual debe ir, y luego se dirige a ella. Cuando los 10 integrantes de un grupo han llegado a la cancha que les corresponde, comienzan a jugar el partido que dura 50 minutos; y luego se retiran. La máquina asigna el número de cancha de acuerdo al orden en que llega el primer jugador de cada grupo. Nota: maximizar la concurrencia.
+
+process Jugador [id: 1..80]
+{
+  int grupo = ...;
+  int nro_cancha;
+
+  Maquina.PedirCancha(grupo, nro_cancha);
+  Cancha[nro_cancha].Jugar();
+}
+
+process Partido [id: 1..8]
+{
+  Cancha.Comenzar();
+  Delay(50);
+  Cancha.Terminar();
+}
+
+Monitor Cancha [id: 1..8]
+{
+  int llegaron = 0; cond cvJugadores, cvPartido;
+
+  procedure Jugar(){
+      llegaron++;
+      if (llegaron == 10) { signal(cvPartido); }
+      wait(cvJugadores);
+  }
+
+  procedure Comenzar(){
+    if(llegaron < 10) { wait(cvPartido); }
+  }
+
+  procedure Terminar(){
+    signal_all(cvJugadores);
+  }
+}
+
+Monitor Maquina
+{
+  int nro_c = 1;
+  int canchas_asignadas[8] = ( [8] 0 ); -- Se supone que el primer indice del array es 1 y el último 0.
+  procedure PedirCancha(grupo: in int, nro_cancha: out int) {
+    if (canchas_asignadas(grupo) == 0) { canchas_asignadas[grupo] = nro_c; nro_c++; }
+    nro_cancha = canchas_asignadas[grupo];
+  }
+}
+
+-- Resolver el siguiente problema con MONITORES. Simular el funcionamiento de un Entrenamiento de
+Básquet donde hay 20 jugadores y 2 canchas donde entrenar. Los jugadores se van distribuyendo entre las canchas en forma cíclica de acuerdo al orden de llegada (el primero va a la cancha 1, el segundo a la 2, el tercer a la 1, y así sucesivamente). Cuando un jugador llega determina la cancha a la cual debe ir y se dirige a ella a esperar a que lleguen los 10 de esa cancha. Cuando todos los jugadores de una cancha han llegado, juegan un partido de 40 minutos y se retiran. Nota: maximizar la concurrencia.

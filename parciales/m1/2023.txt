@@ -1,0 +1,69 @@
+-- Resolver con SENTENCIAS AWAIT (<> y/o <await B; S>) el siguiente problema. Para un partido de fútbol se venden E entradas de forma online, y hay P personas (P > E) que intentan comprar una entrada formando una única fila. Para la venta existen 5 boleterias virtuales que van atendiendo los pedidos de las personas de acuerdo al orden de llegada. Cuando una boletería atiende a una persona, si aún quedan entradas disponibles le envia el numero de entrada vendida, sino le idica que no hay más entradas.
+
+REHACER
+
+-- Resolver con SEMÁFOROS el siguiente problema. En un camino turistico hay un puente por donde puede pasar un vehículo a la vez. Hay N autos que deben pasar por él acuerdo con el orden de llegada. Nota: sólo se pueden usar los procesos que representan a los autos; supong que existe la función Pasar() que simula el paso del auto por el puente.
+
+sem mutex = 1, priv[N] = ( [N] 0 )
+bool libre; cola fila;
+
+process Auto [id: 0..N-1]
+{
+  p(mutex)
+  if (libre) { libre = false; v(mutex); }
+  else { push(fila, id); v(mutex); wait(priv[N])}
+
+  Pasar();
+
+  p(mutex);
+  if (empty(fila)) { libre = true; }
+  else { int aux = pop(fila); v(priv[aux]); }
+  v(mutex);
+}
+
+-- Resolver con MONITORES el siguiente problema. Para un experimento se tiene un red de 15 controladores de temperatura y un módulo central. Los controladores cada cierto tiempo toman la temperatura mediante la función medir() y se la envían a la central para que ésta le indique que debe hacer (número del 1 a 10), y luego realiza esa acción mediante la función actuar(). La central atiende los pedidos de los controladores de acuerdo al orden de llega, usando la función determinar para determinar la acción que deberá hacer ese controlador (número del 1 a 10). Nota: el tiempo que espera cada controlador para tomar nuevamente la temperatura empieza a contar después de haver ejecutado la función actuar.
+
+process Controlador [id: 0..9]
+{
+  int temperatura, accion;
+  while (true) {
+    temperatura = medir();
+    Gestor.Enviar(id, temperatura, accion);
+    actuar(act);
+    delay();
+  }
+}
+
+process Central
+{
+  int id_aux, temp, accion;
+  while (true) {
+    Gestor.Atender(id_aux, temp);
+    accion = determinar(temp);
+    Gestor.Responder(id_aux, accion);
+  }
+}
+
+Monitor Gestor
+{
+  int acciones[10];
+  cond cvControlador, cvCentral; cola c;
+  procedure Enviar(id: in int, temperatura: in int, acccion: out int) {
+    push(c, (id, temperatura));
+    signal(cvCentral);
+    wait(cvControlador);
+    accion = acciones[id];
+  }
+
+  procedure Atender(id: out int, temperatura: out int) {
+    if (empty(c)) { wait(cvCentral); }
+    pop(c, (id, temperatura));
+  }
+
+  procedure Respoder(id:in int, accion: in int) {
+    acciones[id] = accion;
+    signal(cvControlador);
+  }
+}
+
+
