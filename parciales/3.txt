@@ -1,0 +1,117 @@
+-- Resolver con SENTENCIAS AWAIT ( <> y <await B ; S >) el problema de los filósofos evitando deadlock y demora innecesaria.
+
+bool tenedores[5] = ( [5] true )
+
+process Filosofo [id:0..3]
+{
+  while (true) {
+    <await tenedores[id]; tenedores[id] = false>
+    <await tenedores[id+1]; tenedores[id+1] = false>
+    -- Come
+    <tenedores[id] = true; tenedores[id+1] = true>
+    -- Piensa
+  }
+}
+process Filosofo [id:4]
+{
+   while (true) {
+    <await tenedores[0]; tenedores[0] = false>
+    <await tenedores[id]; tenedores[id] = false>
+    -- Come
+    <tenedores[id] = true; tenedores[0] = true>
+    -- Piensa
+  }
+}
+
+-- Resolver con SEMAFOROS el funcionamiento en una fábrica de ventanas con 7 empleados (4 carpinteros, 1 vidriero y 2 armadores) que trabajan de la siguiente manera:
+• Los carpinteros continuamente hacen marcos (cada marco es armando por un único carpintero) y los deja en un depósito con capacidad de almacenar 30 marcos.
+• El vidriero continuamente hace vidrios y los deja en otro depósito con capacidad para 50 vidrios.
+• Los armador continuamente toman un marco y un vidrio de los depósitos correspondientes y arman la ventana (cada ventana es armada por un único armador).
+
+sem marco = 0, vidrio = 0, mutex_v = 1;
+sem deposito_m = 30, deposito_v = 50;
+int ventana = 0;
+
+
+process Carpintero[id:0..4]
+{
+  while (true) {
+    p(deposito_m);
+
+    -- Hace un marco
+
+    v(marco);
+  }
+}
+
+process Vidriero
+{
+  while (true) {
+    p(deposito_v);
+
+    -- Hace un vidrio
+
+    v(vidrio);
+  }
+}
+
+process Armador[id:0..1]
+{
+  while (true) {
+    p(marco);
+    v(deposito_m);
+    p(vidrio);
+    v(deposito_v)
+
+    -- Armo la ventana
+
+    p(mutex_v);
+    ventana++;
+    v(mutex_v);
+  }
+}
+
+-- Resolver con MONITORES el uso de un equipo de videoconferencia que puede ser usado por una única persona a la vez. Hay P Personas que utilizan este equipo (una única vez cada uno) para su trabajo de acuerdo a su prioridad. La prioridad de cada persona está dada por un número entero positivo. Además existe un Administrador que cada 3 hs. incrementa en 1 la prioridad de todas las personas que están esperando por usar el equipo. Nota: maximizar la concurrencia.
+
+process Persona[id:0..P-1]
+{
+  int prioridad = ...;
+
+  Equipo.Usar(id,prioridad)
+  -- Usa el equipo
+  Equipo.Liberar()
+}
+
+process Administrador
+{
+  int personas = 0;
+
+  while (personas < P) {
+    delay(3hs);
+    Equipo.AumentarPrioridad(personas);
+  }
+}
+
+Monitor Equipo
+{
+  bool libre = true;
+  cond cvPersona[P]; colaEspecial fila;
+  int atendidos = 0;
+
+  procedure Usar(id: in int,prioridad: in int) {
+    if (libre) { libre = false; }
+    else { push(fila,(id,prioridad)); wait(cvPersona[id]); }
+  }
+
+  procedure Liberar(){
+    int aux;
+    if (not empty(colaEspecial)) { pop(fila, aux); signal(cvPersona[aux]); }
+    else { libre = true; }
+    atendidos++;
+  }
+
+  procedure AumentarPrioridad(personas: out int) {
+    if (not empty(colaEspecial)) { Aumenta(fila); } -- Se supone que existe un metodo que aumenta la prioridad de las personas en la fila.
+    personas = atendidos;
+  }
+}
