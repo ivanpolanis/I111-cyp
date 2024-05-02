@@ -1,0 +1,101 @@
+1. Resolver con SEMÁFOROS los problemas siguientes:
+a) En una estación de trenes, asisten P personas que deben realizar una carga de su tarjeta SUBE en la terminal
+disponible. La terminal es utilizada en forma exclusiva por cada persona de acuerdo con el orden de llegada.
+Implemente una solución utilizando sólo emplee procesos Persona. Nota: la función UsarTerminal() le permite cargar
+la SUBE en la terminal disponible.
+
+cola fila;
+sem mutex = 1; espera[P] = ([P] 0);
+bool libre = true;
+
+procedure Persona[id:0..P-1]
+{
+  p(mutex);
+  if (libre) { libre = false; v(mutex); }
+  else { push(fila,id); v(mutex); p(espera[id]); }
+
+  UsarTerminal();
+
+  p(mutex);
+  if (not empty(fila)) { int aux; pop(fila, aux); v(espera[aux]); }
+  else { libre = true; }
+  v(mutex);
+}
+
+b) Resuelva el mismo problema anterior pero ahora considerando que hay T terminales disponibles. Las personas
+realizan una única fila y la carga la realizan en la primera terminal que se libera. Recuerde que sólo debe emplear
+procesos Persona. Nota: la función UsarTerminal(t) le permite cargar la SUBE en la terminal t.
+
+cola fila, terminales;
+sem mutex = 1; espera[P] = ([P] 0);
+bool libre = true;
+int libres = T;
+
+procedure Persona[id:0..P-1]
+{
+  int t;
+  p(mutex);
+  if (libres == 0) { push(fila,id); v(mutex); p(espera[id]); }
+  else { libres--; v(mutex); }
+
+  p(sem_t);
+  pop(terminales,t);
+  v(sem_t);
+
+  UsarTerminal(t);
+
+  p(sem_t);
+  push(terminales,t);
+  v(sem_t);
+
+  p(mutex);
+  if (not empty(fila)) { int aux; pop(fila, aux); v(espera[aux]); }
+  else { libres++; }
+  v(mutex);
+}
+
+2. Resolver con MONITORES el siguiente problema: En una elección estudiantil, se utiliza una máquina para voto
+electrónico. Existen N Personas que votan y una Autoridad de Mesa que les da acceso a la máquina de acuerdo con el
+orden de llegada, aunque ancianos y embarazadas tienen prioridad sobre el resto. La máquina de voto sólo puede ser
+usada por una persona a la vez. Nota: la función Votar() permite usar la máquina.
+
+process Persona [id:0..N-1]
+{
+  int prioridad = ... ; -- La persona ya conoce su prioridad
+
+  Mesa.Llegada(id,prioridad);
+
+  Votar();
+
+  Mesa.Liberar();
+}
+
+process Autoridad
+{
+  while (true) {
+    Mesa.Siguiente();
+  }
+}
+
+Monitor Mesa
+{
+  cond persona[N], autoridad, fin;
+  colaEspecial fila;
+
+  procedure Llegada(id: in int, prioridad: in int) {
+    push(fila, (id, prioridad));
+    signal(autoridad);
+    wait(persona[id]);
+  }
+
+  procedure Siguiente() {
+    if (empty(fila)) { wait(autoridad); }
+    signal(persona[pop(fila)]);
+    wait(fin);
+  }
+
+
+  procedure Liberar() {
+    signal(fin);
+  }
+}
