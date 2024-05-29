@@ -1,0 +1,40 @@
+Process Empleado[id:0]
+{
+  m muestra;
+  while (true) {
+    muestra = GenerarMuestra();
+    Buffer!(muestra);
+  }
+}
+
+Process Empleado[id:1]
+{
+  m muestra; resultado res; an analisis;
+  while (true) {
+    Buffer!();
+    Buffer?(muestra);
+    analisis = Armar(muestra);
+    Empleado[2]!(analisis);
+    Empleado[2]?(res);
+    Archivar(res);
+  }
+}
+Process Empleado[id:2]
+{
+  an analisis; resultado res;
+  while (true) {
+    Empleado[1]?(analisis);
+    res = Analizar(analisis);
+    Empleado[1]!(res);
+  }
+}
+
+Process Buffer
+{
+  queue muestras;
+  m muestra;
+  do
+    Empleado[0]?(muestra) -> push(muestras,muestra);
+    not empty(muestras); Empleado[1]?() -> Empleado[1]!(pop(muestras));
+  od
+}

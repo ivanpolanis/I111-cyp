@@ -1,0 +1,45 @@
+chan pedidos(string, int), plato[c](com), vend[3](string, int), libre(int), cocina(string, int);
+process Cliente[id:0..C-1]
+{
+  string pedido;
+  com comida;
+  send pedidos(pedido, int);
+
+  receive plato[id](comida);
+}
+
+process coordinador
+{
+  int id, idVencd;
+  string pedido;
+  while (true) {
+      receive libre(idVend);
+      if (not empty(pedidos)) {
+        receive pedidos(pedido, id);
+        send vend[idVend](pedido, id);
+      } else {
+        send vend[idVend]('',-1);
+      }
+    }
+}
+
+process Vendedor[id:0..2]
+{
+  string res;int idAux;
+  while (true) {
+    send libre(id);
+    receive vend[id](res,idAux)
+    if (idAux != -1) { send cocina(res,idAux); }
+    else { //Reponen }
+  }
+}
+
+process Cocinero[id:0..2]
+{
+  string pedido; int idAux; com comida;
+  while (true) {
+      receive cocina(pedido, idAux);
+      comida = PrepararPlato(pedido);
+      send plato[c](comida);
+  }
+}

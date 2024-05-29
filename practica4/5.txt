@@ -1,0 +1,35 @@
+chan cola_dir(string), cola_usuarios(string), aviso(int);
+
+process Usuario[id:0..N]
+{
+  string doc;
+  while true {
+    doc = GenerarDoc();
+    send cola_usuarios(doc);
+    send aviso(1);
+  }
+}
+
+process Director
+{
+  string doc;
+  while true {
+    doc = GenerarDoc();
+    send cola_dir(doc);
+    send aviso(1);
+  }
+}
+
+process Impresora[id:0..2]
+{
+  string doc;
+  while true {
+    receive aviso(ok);
+    if (not empty(cola_dir)) ->
+      receive cola_dir(doc);
+     (not empty(cola_usuarios)) and (empty(cola_dir)) ->
+      receive cola_usuarios(doc);
+    fi
+    imprimir(doc);
+  }
+}

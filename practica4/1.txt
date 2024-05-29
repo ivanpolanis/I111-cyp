@@ -1,0 +1,19 @@
+chan esperando(int);
+chan atendido[N](bool);
+
+process empleado[id:0..1]
+{
+  int idAux;
+  while (true) {
+    receive esperando(idAux);
+    // Atiende al cliente
+    send atendido[idAux](true);
+  }
+}
+
+process cliente[id:0..N-1]
+{
+  bool at;
+  send esperando(id);
+  receive atendido[id](at);
+}

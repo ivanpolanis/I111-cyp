@@ -1,0 +1,35 @@
+type clase_op = enum(solicitar, liberar);
+chan solicitudes(clase_op, int);
+chan respuesta[P](int);
+
+process Persona[id:0..P-1]
+{
+  send solicitudes(solicitar,id);
+  int caja;
+  recieve respuesta[id](caja);
+  // Usa la caja
+  send solicitudes(liberar,caja);
+}
+
+process Coordinador
+{
+  int minimo = 0,idCaja,idAux;
+  queue filas[5], cajas; //Las cajas inicialmente estan todas disponibles
+  clase_op op;
+  while (true) {
+    receive solicitudes(op,idAux);
+    if(op == solicitar) {
+      if (not empty(cajas)) {
+        pop(cajas, idCaja);
+        send respuesta[idAux](idCaja);
+      } else {
+        minimo = min(filas); //Devuelve el numero de fila con menor cantidad de personas
+        push(filas[minimo],idAux);
+      }
+    } else {
+      idCaja = idAux;
+      if empty(filas[idCaja]) { push(cajas,idCaja); }
+      else { pop(filas[idCaja],idAux); send respuesta[idAux](idCaja); }
+    }
+  }
+}

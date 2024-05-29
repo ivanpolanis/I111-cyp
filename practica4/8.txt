@@ -1,0 +1,42 @@
+Process Alumno[id:0..P-1]
+{
+  Admin!llegada();
+  Admin?comenzar();
+
+  examen ex = HacerExamen();
+
+  Admin!entrega(ex,id);
+  int nota;
+  Profesor[*]?calificacion(nota);
+}
+
+Process Profesor[id:0..2]
+{
+  examen ex; int idAl, nota;
+  while (true) {
+    Admin!aviso(id);
+    Admin?(ex,idAl);
+
+    nota = Corregir(ex);
+
+    Alumno!calificacion(nota);
+  }
+}
+
+Process Admin
+{
+  int al=0;
+  while (al < P) {
+    Alumno[*]?llegada();
+    al++;
+  }
+  for i=0 to P-1 -> Alumno[i]!comenzar();
+
+  queue entregados;
+  int idAl, idP;
+
+  do
+    (al != 0);Alumno[*]?entrega(ex,idAl) -> push(entregados,(ex,idAl)); al--;
+    (not empty(entregados)); Profesor[*]?aviso(idP) -> Profesor[idP]!(pop(ex,idAl));
+  od
+}

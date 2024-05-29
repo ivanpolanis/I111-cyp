@@ -1,0 +1,33 @@
+chan Pedido(int), Liberar(int,int), Aviso(int), respuestas[N](int);
+clase_op = enum(solicitar, liberar);
+
+process Cliente[id:0..N-1]
+{
+  send Pedido(id);
+  send aviso(1);
+  receive respuestas[id](cabina);
+  // Usa la cabina
+  send Liberar(id,cabina);
+  send aviso(1);
+  receive respuestas[id](monto); //Se queda esperando hasta que le cobren
+}
+
+process Empleado
+{
+  int id, idcabina;
+  queue espera, cabinas = ...;
+  while (true) {
+    receive aviso(ok);
+    if (not empty(Liberar)) ->
+      receive Liberar(id,idCabina);
+      int monto = Cobrar();
+      send respuestas[id](monto);
+      if (empty(espera)) { push(cabinas,idCabina); }
+      else { pop(espera,id); send respuestas[id](idCabina); }
+
+     (not empty(Pedido)) and (empty(Liberar)) ->
+      receive Pedido(id);
+      if (not empty(cabinas)) { pop(cabinas,idCabina); send respuestas[id](idCabina); }
+      else { push(espera,id); }
+  }
+}

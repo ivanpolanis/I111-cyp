@@ -1,0 +1,27 @@
+Process Robot[id:0..R-1]
+{
+  direccion dir;
+  while (true) {
+    dir = BuscarWebInfectada();
+    Buffer!(dir);
+  }
+}
+
+Process Analizador
+{
+  direccion dir;
+  while (true) {
+    Buffer!();
+    Buffer?(dir);
+    AnalizarSitio(dir);
+  }
+}
+
+Process Buffer
+{
+  queue infectados; direccion dir;
+  do
+    Robot[*]?(dir) -> push(infectados,dir);
+    (not empty(infectados)); Analizador?() -> Analizador!(pop(infectados));
+  od
+}
