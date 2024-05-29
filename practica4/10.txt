@@ -1,0 +1,25 @@
+Process Espectador[id:0..E-1]
+{
+  Maquina!llegada(id);
+  Maquina?usar();
+
+  -- Usa la maquina
+
+  Maquina!liberar();
+}
+
+Process Maquina
+{
+  queue fila; int id; bool libre = true;
+
+  do
+    Espectador[*]?llegada(id) -> {
+     if (libre) -> libre = false; Espectador[id]!usar();
+     else push(fila,id);
+    }
+    Espectador[*]?liberar() -> {
+     if (not empty(fila)) -> Espectador[pop(fila)]!usar();
+     else libre = true;
+    }
+  od
+}

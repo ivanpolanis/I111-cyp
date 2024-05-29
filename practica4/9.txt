@@ -1,0 +1,25 @@
+Process Persona[id:0..P-1]
+{
+  Empleado!llegada(id);
+  Empleado?espera();
+
+  // Usa el simulador
+
+  Empleado!terminar();
+}
+
+Process Empleado
+{
+  queue fila; int id_p; bool libre = true;
+  do
+    Persona[*]?llegada(id_p) ->
+    {
+      if (libre) -> libre=false; Persona[id_p]!espera();
+      else push(fila,id_p);
+    }
+    Persona[*]?terminar() ->
+    {
+      if (not empty(fila)) -> Persona[pop(fila)]!espera();
+      else libre = true;
+    }
+}
