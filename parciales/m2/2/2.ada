@@ -4,8 +4,8 @@ Task Type Cliente is
 End Cliente;
 
 Task Portal is
-  ENTRY ComprarEntradaPremium(comprobrante: OUT c);
-  ENTRY ComprarEntrada(comprobante: OUT int);
+  ENTRY ComprarEntradaPremium(comprobrante: OUT string);
+  ENTRY ComprarEntrada(comprobante: OUT string);
 End Portal;
 
 Task Body Portal is
@@ -29,8 +29,6 @@ Begin
     End Select;
   End Loop;
 
-
-
 End Portal;
 
 Task Body Cliente is
@@ -42,7 +40,7 @@ Begin
   If (prior = 1) then
     Portal.ComprarEntradaPremium(comprobante);
   Else
-    While (comprobante = 'VACIO') Loop
+    While (comprobante = "VACIO") Loop
       Select
         Portal.ComprarEntrada(comprobante);
       Or
@@ -52,7 +50,7 @@ Begin
     End Loop;
   End If;
 
-  If (comprobante <> 'SOLDOUT') Then Imprimir(comprobante) End If;
+  If (comprobante <> "SOLDOUT") Then Imprimir(comprobante) End If;
 End;
 
 arrPersonas: Array(1..P) of Cliente;
