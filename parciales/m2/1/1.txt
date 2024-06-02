@@ -1,0 +1,44 @@
+Process Corredor[id:0..C-1]
+{
+  int idC, pos;
+  Admin!llegue(id);
+  Admin?coordinador(idC);
+  Coordinador[idC]!pedirNumero(id);
+  Coordinador[idC]?Numero(num);
+  Admin?barrera();
+
+  -- Carrera
+
+  Admin!pedirPosicion(id);
+  Admin?posicion(pos);
+}
+
+Process Coordinador[id:0...2]
+{
+  int idR;
+  while (true){
+    Admin!siguiente(idC);
+    Corredor[idR]?pedirNumero(idR);
+    int num = ObtenerNumero(idR);
+    Corredor[idR]?Numero(num);
+  }
+}
+
+Process Admin
+{
+  queue corredores;
+  int llegaron = 0;
+  int idR, idC;
+
+  do
+    (llegaron < C) ; Corredor[*]?llegue(idR) -> push(corredores, idR);
+    not empty(corredores); Coordinador[*]?siguiente(idC) -> idR = pop(corredores); Corredor[idR]!coordinador(idC);
+  od;
+
+  for i=0..C-1 do
+    Corredor[i]!barrera();
+
+  for i=0..C-1 do
+    Corredor[*]?pedirPosicion(idR);
+    Corredor[idR]!posicion(i);
+}

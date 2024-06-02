@@ -1,0 +1,46 @@
+clase_op = enum(inicio, busqueda);
+chan pedido(clase_op,int);
+chan aviso(int);
+chan atencion(clase_op,int,int)[0..2];
+chan resuelto(tramite)[0..P-1];
+
+Process Persona[id:0..P-1]
+{
+  tramite resultado;
+  clase_op op = Operacion();
+  send pedido(op,id);
+  receive resuelto[id](resultado);
+}
+
+Process Empleado[id:0..2]
+{
+  int atendidos = 0;
+  tramite t;
+  send aviso(id);
+  receive atencion(op,id,atendidos);
+  while (atendidos < P) {
+
+    if (id == -1) delay(300);
+    else {
+      if (op = inicio) -> t = IniciarTramite();
+      else t = Busqueda();
+      send resuelto[id](t);
+    }
+
+    send aviso(id);
+    receive atencion(op,id,atendidos);
+  }
+}
+
+Process Admin
+{
+  int idE, idP, atendidos = 0;
+  clase_op op;
+  while True {
+    receive aviso(idE)
+    if (not empty(pedido)) -> { receive pedido(op, idP); atendidos++;}
+    else idP = -1;
+
+    send atencion[idE](op,idP,atendidos)
+  }
+}
