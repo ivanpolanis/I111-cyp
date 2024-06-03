@@ -1,0 +1,22 @@
+Process Alumno[id:0..19]
+{
+  float n;
+  Docente?llamar();
+
+  ex = HacerExamen();
+
+  Docente!recibirExamen(ex);
+  Docente?nota(n);
+}
+
+Process Docente
+{
+  for i in 0..19 do -> {
+    Alumno[i]!llamar();
+
+    Alumno[i]?recibirExamen(ex)
+    n = Evaluar(ex);
+    Alumno[i]!nota(n);
+  }
+}
+

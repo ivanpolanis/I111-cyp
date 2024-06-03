@@ -1,0 +1,35 @@
+chan libre(int), llegue(int), pedidio[3](int,list), entrega[N](b), empleadoAsignado[N](int);
+
+Process Cliente[id:0..N-1]
+{
+  int idE; list lista; b bolsa;
+  send llegue(id);
+  receive empleadoAsignado[id](idE);
+
+  send pedido[idE](id, lista);
+  receive entrega[id](bolsa);
+}
+
+Process Empleado[id:0..2]
+{
+  list lista; int idC; b bolsa;
+  while true {
+    send libre(id);
+    receive pedido[id](idC, lista);
+
+    -- Busca los productos del pedido
+
+    send entrega[idC](bolsa);
+  }
+}
+
+Process Admin
+{
+  int idC, idE;
+  while true {
+    receive llegue(idC);
+    receive libre(idE);
+
+    send empleadoAsignado[idC](idE);
+  }
+}
