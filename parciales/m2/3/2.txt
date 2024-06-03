@@ -1,0 +1,36 @@
+Process Encargado
+{
+  queue norte, sur;
+  do cliente[*]?pedido(paquete,destino) ->{
+      if (destino == "NORTE") -> push(norte,paquete)
+      else push(sur,paquete);
+    }
+  @ (not empty(norte)); camion[0]?llegue() -> {
+    while (not empty(norte)) {
+      camion[0]!cargar(pop(norte),true);
+    }
+    camion[0]!cargar(null,false);
+  }
+  @ (not empty(sur)); camion[1]?llegue() -> {
+    while (not empty(sur)) {
+      camion[1]!cargar(pop(sur),false);
+    }
+    camion[1]!cargar(null,true);
+  }
+  od;
+}
+
+Process Camion[id:0..1]
+{
+  while true {
+    bool salir = false;
+    Encargado!llegue();
+    while (not salir){
+      Encargado?cargar(paquete,salir);
+      if (paquete <> null) CargarPaquete(paquete);
+    }
+
+    -- Hace la entrega y vuelve
+
+  }
+}
