@@ -1,0 +1,25 @@
+{Resolver con PMS. En la estación de trenes hay una terminal de SUBE que debe ser usada por P personas de acuerdo con el orden de llegada. Cuando la persona accede a la terminal, la usa y luego se retira para dejar al siguiente. Nota: cada Persona una sólo una vez la terminal.}
+
+Process Persona[id:0..P-1]
+{
+  Admin!llegue(id);
+  Admin?usar();
+
+  Usar_Terminal();
+
+  Admin!liberar();
+}
+
+Process Admin
+{
+  int idP; queue fila; bool libre = true;
+  do Persona[*]?llegue(idP) -> {
+      if (libre) { libre = false; Persona[idP]!usar(); }
+      else push(fila,idP);
+    }
+  @ Persona[*]?liberar() -> {
+      if (not empty(fila)) { Persona[pop(fila)]!usar(); }
+      else { libre = true; }
+    }
+  od;
+}
