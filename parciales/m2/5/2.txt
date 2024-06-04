@@ -1,0 +1,26 @@
+Process Administrador
+{
+  bool libre = true; colaEspecial cola;
+
+  do Persona[*]?Llegue(id,prior) -> {
+        if (libre) { libre = false; Persona[id]!Usar(); }
+        else {push(cola,(id,prior))}
+      }
+  @ Persona[*]?Termine() -> {
+      if (not empty(cola)) { Persona[pop(cola)]!Usar(); }
+      else { libre = true; }
+    }
+  od;
+}
+
+Process Persona[id:0..N-1]
+{
+  int prior = ...;
+
+  Administrador!Llegue(id,prior);
+  Administrador?Usar();
+
+  Usar_Telefono();
+
+  Administrador!Termine();
+}

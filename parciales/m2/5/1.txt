@@ -1,0 +1,28 @@
+chan aviso, AtencionAlta(string, int), AtencionBaja(string,int), respuesta[N](string);
+Process Empleado
+{
+  int idC; string sol, problema;
+  while true {
+    receive aviso();
+    if (not empty(AtencionAlta)) -> receive AtencionAlta(problema,idC);
+    @ (not empty(AtencionBaja) and empty(AtencionAlta)) -> receive AtencionBaja(problema,idC);
+    fi
+    sol = atender(problema);
+    send respuesta[idC](sol);
+  }
+}
+
+
+Process Persona[id:0..N-1]
+{
+  int prior = ...; -- 1 alta, 0 baja
+  string problema = ...;
+
+
+  if ( prior==1 ) { send AtencionAlta(problema,id); }
+  else { send AtencionBaja(problema, id); }
+
+  send aviso();
+
+  receive Respuesta[id](sol);
+}
