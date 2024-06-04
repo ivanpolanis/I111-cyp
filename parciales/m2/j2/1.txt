@@ -1,0 +1,33 @@
+{Resolver con PASAJE DE MENSAJES ASINCRÓNICO (PMA) el siguiente problema. En un negocio de cobros digitales hay P personas que deben pasar por la única caja de cobros para realizar el pago de sus boletas. Las personas son atendidas de acuerdo con el orden de llegada, teniendo prioridad aquellos que deben pagar menos de 5 boletas de los que pagan más. Adicionalmente, las personas embarazadas tienen prioridad sobre los dos casos anteriores. Las personas entregan sus boletas al cajero y el dinero de pago; el cajero les devuelve el vuelto y los recibos de pago.}
+
+chan aviso(), PriorCola(list,float,int), Menos5Cola(list,float,int), Cola(list,float,int);
+
+Process Caja
+{
+  while (true) {
+    receive aviso();
+    if (not empty(PriorCola)) -> receive PriorCola(boletas,dinero,idP);
+    if (not empty(Menos5Cola)) && (empty(PriorCola)) -> receive Menos5Cola(boletas,dinero,idP);
+    if (not empty(Cola)) && (empty(Menos5Cola)) && (empty(PriorCola)) -> receive Cola(boletas,dinero,idP);
+    fi;
+
+    { recibos, vuelto } = Atender(boletas,dinero);
+
+    send Vuelto[idP](vuelto, recibos);
+  }
+}
+
+
+Process Persona
+{
+  bool prior = ...; int cant = ...;
+  list boletas = ..., recibos; float dinero = ..., vuelto;
+
+  if (prior) -> send PriorCola(boletas,dinero,id)
+  else if (cant < 5) -> send Menos5Cola(boletas,dinero,id)
+  else send Cola(boletas,dinero,id);
+
+  send aviso();
+
+  receive Vuelto[id](vuelto, recibos);
+}
