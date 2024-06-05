@@ -1,0 +1,32 @@
+Process Coordinador
+{
+  queue alumnos, ayudantes; int idP,idA;
+  string consulta;
+
+  do (not empty(ayudantes)); Alumno[*]?llegue(idP,consulta) -> Ayudante[pop(ayudante)]!atender(consulta,idP);
+  [] (empty(ayudantes)); Alumno[*]?llegue(idP,consulta) -> push(alumnos,(idP,consulta));
+  [] (not empty(alumnos)); Ayudante[*]?aviso(idA) -> Ayudante[idA]!atender(pop(alumnos));
+  [] (empty(alumnos)); Ayudante[*]?aviso(idA) -> push(ayudantes,idA);
+  od;
+}
+
+Process Ayudante[id:0..1]
+{
+  int idP; string consulta, respuesta;
+  while true {
+    Coordinador!aviso(id);
+    Coordinador?atender(consulta,idP);
+
+    respuesta = Atender(consulta);
+
+    Alumno[idP]!responder(respuesta);
+  }
+}
+
+Process Alumno[id:0..N-1]
+{
+  string consulta = ..., respuesta;
+  Coordinador!llegue(id,consulta);
+
+  Ayudante[*]?responder(respuesta);
+}
