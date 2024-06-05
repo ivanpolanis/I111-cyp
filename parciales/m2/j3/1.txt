@@ -1,0 +1,52 @@
+{Resolver con Pasaje de Mensajes Sincrónicos (PMS) el siguiente problema. En un torneo de programación hay 1 organizador, N competidores y S supervisores. El organizador comunica el desafío a resolver a cada competidor. Cuando un competidor cuenta con el desafío a resolver, lo hace y lo entrega para ser evaluado. A continuación, espera a que alguno de los supervisores lo corrija y le indique si está bien. En caso de tener errores, el competidor debe corregirlo y volver a entregar, repitiendo la misma metodología hasta que llegue a la solución esperada. Los supervisores corrigen las entregas respetando el orden en que los competidores van entregando. Nota: maximizar la concurrencia y no generar demora innecesaria.}
+
+Process Organizador
+{
+  queue entregados, supervisores; int idC, idS;
+
+  For i in 0..N-1 {
+    des = Desafio();
+    Competidor[*]?Llegue(idC)
+    Competidor[idC]!desafio(des);
+  }
+
+}
+
+Process Coordinador
+{
+  queue entregados, supervisores; int idC, idS;
+  Do (empty(supervisores)); Competidor[*]?Entrega(res,idC) -> push(entregados,(res,idC));
+    [] (not empty(supervisores)); Competidor[*]?Entrega(res,idC) -> Supervisor[pop(supervisores)]!(res,idC);
+    [] (empty(entregados)); Supervisor[*]?Aviso(idS) -> push(supervisores,idS);
+    [] (not empty(entregados)); Supervisor[*]?Aviso(idS) -> Supervisor[idS]!Corregir(pop(entregados));
+  od;
+}
+
+Process Supervisor[id:0..S-1]
+{
+  desafio res, correccion; bool sigue; int idP;
+  while true {
+    Coordinador!Aviso(id);
+    Coordinador?Corregir(res,idP);
+
+    { correcion, sigue } = CorregirProblema(res);
+
+    Competidor[idP]!Correccion(correccion,sigue);
+  }
+}
+
+Process Competidor[id:0..N-1]
+{
+  desafio res,des; bool sigue = true;
+  Organizador!llegue(id);
+  Organizador?desafio(des);
+
+  while sigue {
+    res = HacerDesafio(des);
+
+    Organizador!Entrega(res,id);
+
+    Supervisor[*]?Correccion(des,sigue);
+  }
+
+}
