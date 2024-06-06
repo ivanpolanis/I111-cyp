@@ -1,0 +1,35 @@
+chan aviso(), solicitud(int), pagar(int, float, int), nroCabina[N](int), atendido[N](float);
+
+Process Cliente[id:0..N-1]
+{
+  int cabina; float dinero = ..., vuelto;
+  send solicitud(id);
+  send aviso();
+  receive nroCabina[id](cabina);
+
+  -- Usar cabina
+
+  send pagar(cabina, dinero, id);
+  send aviso();
+  receive atendido[id](vuelto);
+}
+
+Process Empleado
+{
+  queue cabinas; int cabina, idC;
+
+  while true {
+    receive aviso();
+    if (empty(pagar) && not empty(solicitud)) -> {
+      receive solicitud(idC);
+      send nroCabina[idC](pop(cabinas));
+    }
+    [] (not empty(pagar)) -> {
+      receive pagar(cabina, dinero);
+      push(cabinas,cabina, idC);
+      send atendido[idC](Cobrar(dinero));
+    }
+    fi;
+
+  }
+}

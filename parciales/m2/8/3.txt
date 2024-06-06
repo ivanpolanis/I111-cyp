@@ -1,0 +1,35 @@
+Process Buffer
+{
+  int idC;
+  bool libre; queue cola;
+  while seguir {
+    if (libre); Cliente[*]?llegue(idC) -> Empleado!atender(idC);
+    (not libre); Cliente[*]?llegue(idC) -> push(cola, idC);
+    (not empty(cola)); Empleado?siguiente(seguir) -> Empleado!atender(pop(cola));
+    (empty(cola)); Empleado?siguiente(seguir) -> libre = true;
+    fi;
+  }
+}
+
+Process Empleado
+{
+  int idC;
+  for i in 1..C {
+    Buffer!siguiente(true);
+    Buffer?atender(idC);
+
+    -- Carga
+
+    Cliente[idC]!carga();
+  }
+
+   Buffer!siguiente(false);
+
+}
+
+Process Cliente[id:0..C-1]
+{
+  Buffer!llegue(id);
+
+  Empleado?carga();
+}
