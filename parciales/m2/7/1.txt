@@ -1,0 +1,47 @@
+chan solicitudes(string,int), respuestas[N](string), siguiente(), aviso()
+
+Process Servidor
+{
+  int idP; string sol, res;
+  while true {
+    send siguiente();
+    send aviso();
+    receive solicitud(sol,idP);
+
+    if (idP = -1) { limpiar() };
+    else { res = resolver(sol); send respuestas[idP](res); }
+  }
+}
+
+Process Maquina[id:0..N-1]
+{
+  string sol, res;
+  while true {
+    sol = GenerarSolicitud();
+    send solicitudes(sol,id);
+    send aviso();
+    receive respuestas[id](res);
+  }
+}
+
+Process Gestor
+{
+  colaEspecial q;
+  string sol; int idP;
+
+  while true {
+    receive aviso();
+    if (not empty(siguiente)) -> {
+      if (not empty(q)) { (sol,idP) = pop(q); }
+      else { idP = -1; sol = ''; }
+      send solicitud(sol,idP)
+      }
+    [] (not empty(solicitudes)) -> {
+      receive solicitudes(sol,idP);
+      push(q(sol,idP));
+    }
+    fi;
+  }
+}
+
+

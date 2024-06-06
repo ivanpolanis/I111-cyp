@@ -1,0 +1,29 @@
+Process Robot[id:0..R-1]
+{
+  while true {
+    dir = BuscarInfectado();
+    Buffer!infectado(dir);
+  }
+}
+
+Process Analizador
+{
+  while true {
+    Buffer!Siguiente();
+    Buffer?EnviarInfectado(dir);
+
+    Analizar(dir);
+
+  }
+}
+
+Process Buffer
+{
+
+  queue cola; string dir;
+
+  do Robot[*]?infectado(dir) -> push(cola, dir);
+  (not empty(cola)); Analizador?Siguiente() -> Analizador!EnviarInfectado(pop(cola));
+  od;
+
+}
