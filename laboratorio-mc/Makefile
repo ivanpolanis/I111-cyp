@@ -3,9 +3,9 @@ CC = gcc
 #CFLAGS = -fopenmp -Wall -O2
 CFLAGS = -pthread 
 TARGET ?= build
-SRC ?= 3.c
-N ?= 512
-T ?= 4
+SRC ?= 4.c
+N ?= 2048
+T ?= 2
 
 # Compilar el programa
 all: $(TARGET)
