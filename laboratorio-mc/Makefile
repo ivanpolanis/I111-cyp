@@ -1,9 +1,10 @@
 # Variables
 CC = gcc
-CFLAGS = -fopenmp -Wall -O2
+#CFLAGS = -fopenmp -Wall -O2
+CFLAGS = -pthread 
 TARGET ?= build
-SRC ?= 2.c
-N ?= 756
+SRC ?= 3.c
+N ?= 512
 T ?= 4
 
 # Compilar el programa
