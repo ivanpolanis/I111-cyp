@@ -3,7 +3,7 @@ CC = mpicc
 RUNNER = mpirun
 FLAGS = -np
 TARGET ?= build
-SRC ?= 1.c
+SRC ?= 2.c
 N ?= 20
 T ?= 2
 
