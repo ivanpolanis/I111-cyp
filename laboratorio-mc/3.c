@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 int **vec, **res;
-pthread_mutex_t mutex;
 
 void allocate_memory(int size, int ***vec) {
   *vec = (int **)malloc(size * sizeof(int *));
@@ -34,9 +33,7 @@ void *multiply_rows(void *arg) {
       for (int k = 0; k < data->size; k++) {
         partial_sum += vec[i][k] * vec[k][j];
       }
-      pthread_mutex_lock(&mutex);
       res[i][j] = partial_sum;
-      pthread_mutex_unlock(&mutex);
     }
   }
 
@@ -57,7 +54,6 @@ int main(int argc, char **argv) {
 
   int N = atoi(argv[1]);
   int num_threads = atoi(argv[2]);
-  pthread_mutex_init(&mutex, NULL);
 
   int rows_per_thread = N / num_threads;
   pthread_t threads[N];
@@ -82,7 +78,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < num_threads; i++)
     pthread_join(threads[i], NULL);
 
-  // print_matrix(N, res);
+  print_matrix(N, res);
 
   return 0;
 }

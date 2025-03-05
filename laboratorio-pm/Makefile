@@ -4,8 +4,8 @@ RUNNER = mpirun
 FLAGS = -np
 TARGET ?= build
 SRC ?= 2.c
-N ?= 20
-T ?= 2
+N ?= 200000
+T ?= 6
 
 # Compilar el programa
 all: $(TARGET)

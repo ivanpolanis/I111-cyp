@@ -1,11 +1,11 @@
 # Variables
 CC = gcc
-#CFLAGS = -fopenmp -Wall -O2
+# CFLAGS = -fopenmp -Wall -O2
 CFLAGS = -pthread 
-TARGET ?= build
-SRC ?= 4.c
-N ?= 2048
-T ?= 2
+TARGET = build
+SRC = 3.c
+N ?= 16
+T ?= 16
 
 # Compilar el programa
 all: $(TARGET)
@@ -15,7 +15,7 @@ $(TARGET): $(SRC)
 
 # Ejecutar el programa con argumentos
 run: $(TARGET)
-	@echo "Ejecutando con N=$(N) y T=$(T)"
+	@echo "Ejecutando con N=$(N) y T=$(T), SRC = $(SRC)"
 	./$(TARGET) $(N) $(T)
 
 all-run: all run
@@ -24,4 +24,4 @@ all-run: all run
 clean:
 	$(RM) $(TARGET)
 
-.PHONY: all clean run
+.PHONY: all clean run all-run
